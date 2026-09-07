@@ -525,6 +525,26 @@ function selectTable(tableName) {
  * @param {string} tableName 
  */
 function renderSpreadsheet(tableName) {
+  // Tabulator ライブラリが読み込まれているかチェック
+  if (typeof Tabulator === "undefined") {
+    console.error("Tabulator library is not loaded.");
+    const gridElem = document.getElementById("table-grid");
+    if (gridElem) {
+      gridElem.innerHTML = `
+        <div style="padding: 40px 20px; text-align: center; color: #dc2626;">
+          <div style="font-size: 2.5rem; margin-bottom: 12px;">⚠️</div>
+          <h3 style="font-size: 1.1rem; margin-bottom: 8px;">スプレッドシートライブラリ (Tabulator) の読み込みに失敗しました</h3>
+          <p style="font-size: 0.85rem; color: #64748b; line-height: 1.6; max-width: 500px; margin: 0 auto;">
+            ローカルの <code>lib/tabulator.min.js</code> またはインターネット接続（CDN）を確認してください。<br>
+            リポジトリ内の <code>lib</code> フォルダが配置されているかご確認ください。
+          </p>
+        </div>
+      `;
+    }
+    updateStatus("Tabulator ライブラリが見つかりません", true);
+    return;
+  }
+
   const tableData = appState.tables[tableName];
   const columns = tableData.columns;
 

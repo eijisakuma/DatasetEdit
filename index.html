@@ -5,12 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DataSet XML エディター - Webスプレッドシート編集ツール</title>
   
-  <!-- Tabulator スプレッドシートライブラリ (CSS & JS) -->
-  <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@5.5.4/dist/css/tabulator_modern.min.css">
-  <script src="https://unpkg.com/tabulator-tables@5.5.4/dist/js/tabulator.min.js"></script>
+  <!-- Tabulator スプレッドシートライブラリ (ローカル同梱 ＋ CDNフォールバック) -->
+  <link rel="stylesheet" href="lib/tabulator_modern.min.css">
+  <script src="lib/tabulator.min.js"></script>
+  <script>
+    // ローカル読み込みに失敗した場合のCDNフォールバック
+    if (typeof Tabulator === "undefined") {
+      document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.4/dist/css/tabulator_modern.min.css">');
+      document.write('<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.4/dist/js/tabulator.min.js"><\/script>');
+    }
+  </script>
 
-  <!-- ExcelJS ライブラリ (Excel ListObject形式出力用) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+  <!-- ExcelJS ライブラリ (ローカル同梱 ＋ CDNフォールバック) -->
+  <script src="lib/exceljs.min.js"></script>
+  <script>
+    if (typeof ExcelJS === "undefined") {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"><\/script>');
+    }
+  </script>
 
   <!-- アプリケーション独自スタイルシート -->
   <link rel="stylesheet" href="style.css">
