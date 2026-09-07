@@ -62,6 +62,7 @@ function setupEventListeners() {
 
   // ヘッダーアクション
   document.getElementById("btn-save-xml").addEventListener("click", saveXmlFile);
+  document.getElementById("btn-export-excel").addEventListener("click", exportDataSetToExcel);
   document.getElementById("btn-load-sample").addEventListener("click", loadSampleData);
 
   // ツールバーアクション（行の追加・削除など）
@@ -353,8 +354,9 @@ function parseAndLoadXml(xmlString, fileName, fileSize) {
     updateStatus("XML内にデータテーブルが見つかりませんでした。", true);
   }
 
-  // 保存ボタンを有効化
+  // 保存・出力ボタンを有効化
   document.getElementById("btn-save-xml").disabled = false;
+  document.getElementById("btn-export-excel").disabled = false;
 }
 
 /**
@@ -461,10 +463,24 @@ function renderTableList() {
         </svg>
         <span>${escapeHtml(tableName)}</span>
       </div>
-      <span class="table-badge">${tableData.rows.length} 件</span>
+      <div class="table-item-right">
+        <span class="table-badge">${tableData.rows.length} 件</span>
+        <button class="btn-item-csv" title="${escapeHtml(tableName)} をCSV出力">CSV</button>
+      </div>
     `;
 
+    // テーブル切り替え
     li.addEventListener("click", () => selectTable(tableName));
+
+    // 各テーブルごとのCSV出力ボタン
+    const csvBtn = li.querySelector(".btn-item-csv");
+    if (csvBtn) {
+      csvBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // テーブル選択のクリックイベント伝播を防止
+        exportTableCsv(tableName);
+      });
+    }
+
     tableListElem.appendChild(li);
   });
 }
@@ -682,15 +698,203 @@ function deleteSelectedRows() {
 }
 
 /**
- * 現在のテーブルデータを CSV 形式でダウンロードエクスポートします。
+ * 現在表示中のテーブルデータを CSV 形式でダウンロードします。
  */
 function exportCurrentTableCsv() {
-  if (!appState.tabulator || !appState.currentTable) return;
-  appState.tabulator.download("csv", `${appState.currentTable}.csv`);
+  if (!appState.currentTable) return;
+  exportTableCsv(appState.currentTable);
+}
+
+/**
+ * 指定したテーブルのデータを UTF-8 BOM付き CSV 形式でダウンロードします。
+ * 列名には DataColumn の Caption（表示名）を使用し、Excelで開いても文字化けしません。
+ * @param {string} tableName 
+ */
+function exportTableCsv(tableName) {
+  if (!appState.tables[tableName]) return;
+
+  // 現在表示中のテーブルなら最新の編集内容を同期
+  if (appState.currentTable === tableName) {
+    syncCurrentTableData();
+  }
+
+  const tableData = appState.tables[tableName];
+  const columns = tableData.columns;
+  const rows = tableData.rows;
+
+  // 1. ヘッダー行（CaptionがあればCaptionを使用）
+  const headers = columns.map((col) => {
+    return (tableData.captions && tableData.captions[col]) ? tableData.captions[col] : col;
+  });
+
+  // CSVエスケープ関数（RFC 4180 準拠）
+  const escapeCsv = (val) => {
+    if (val === null || val === undefined) return '""';
+    const str = String(val);
+    if (str.includes('"') || str.includes(',') || str.includes('\r') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return `"${str}"`;
+  };
+
+  const csvLines = [];
+  // ヘッダーを追加
+  csvLines.push(headers.map(escapeCsv).join(","));
+
+  // データ行を追加
+  rows.forEach((row) => {
+    const line = columns.map((col) => escapeCsv(row[col] !== undefined ? row[col] : ""));
+    csvLines.push(line.join(","));
+  });
+
+  // UTF-8 BOM (\uFEFF) を付与して Excel での文字化けを防止
+  const csvContent = "\uFEFF" + csvLines.join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${tableName}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  updateStatus(`テーブル "${tableName}" を CSV としてダウンロードしました。`);
 }
 
 // ==========================================================================
-// 6. XML の再生成 & 保存（ダウンロード）
+// 6. Excel 出力 (各シート1テーブル・ListObject形式)
+// ==========================================================================
+
+/**
+ * DataSet 全体を Excel ファイル (.xlsx) として出力します。
+ * 各シートに1つのテーブルを配置し、Excel の ListObject（構造化テーブル形式）として
+ * オートフィルターやテーブルスタイル（縞模様等）を適用して出力します。
+ */
+async function exportDataSetToExcel() {
+  const tableNames = Object.keys(appState.tables);
+  if (tableNames.length === 0) {
+    alert("出力するテーブルが存在しません。");
+    return;
+  }
+
+  // 最新の編集データを同期
+  syncCurrentTableData();
+
+  updateStatus("Excel ファイル (.xlsx) を生成中...");
+
+  try {
+    // ExcelJS の Workbook を作成
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "DataSet XML Editor";
+    workbook.created = new Date();
+    workbook.modified = new Date();
+
+    // 各テーブルごとにシートを作成
+    tableNames.forEach((tableName) => {
+      const tableData = appState.tables[tableName];
+      const columns = tableData.columns;
+      const rows = tableData.rows;
+
+      // Excelのシート名制約（最大31文字、特殊文字 \ / ? * : [ ] を除去）
+      const safeSheetName = tableName.replace(/[\\\/\?\*\:\[\]]/g, "_").substring(0, 31);
+      const worksheet = workbook.addWorksheet(safeSheetName);
+
+      // ListObject（テーブル）の名前（Excel内で一意、英数字・アンダースコア）
+      const safeTableName = "Table_" + tableName.replace(/[^a-zA-Z0-9_]/g, "_");
+
+      // 各列の表示名（CaptionがあればCaptionを使用）
+      const tableColumns = columns.map((col) => {
+        const caption = (tableData.captions && tableData.captions[col])
+          ? tableData.captions[col]
+          : col;
+        return {
+          name: caption,
+          filterButton: true // オートフィルター有効化
+        };
+      });
+
+      // 行データ配列の構築
+      const tableRows = rows.map((row) => {
+        return columns.map((col) => {
+          const val = row[col];
+          if (val === undefined || val === null) return "";
+          // 純粋な数値であれば数値型として格納（計算やソートが正しく機能するように）
+          if (typeof val === "string" && val.trim() !== "" && !isNaN(val) && (!val.startsWith("0") || val === "0")) {
+            const num = Number(val);
+            if (!isNaN(num) && Number.isFinite(num) && String(num) === val.trim()) {
+              return num;
+            }
+          }
+          return val;
+        });
+      });
+
+      // データ行が0件の場合は空行を1行ダミーで作成（ExcelのListObject仕様対応）
+      const finalRows = tableRows.length > 0 ? tableRows : [columns.map(() => "")];
+
+      // ★ Excel の ListObject（構造化テーブル形式）を追加
+      worksheet.addTable({
+        name: safeTableName,
+        ref: "A1",
+        headerRow: true,
+        totalsRow: false,
+        style: {
+          theme: "TableStyleMedium2", // Excel標準の見やすい青系テーブルスタイル
+          showRowStripes: true        // 1行おきの縞模様
+        },
+        columns: tableColumns,
+        rows: finalRows
+      });
+
+      // 列幅の自動調整（ヘッダー文字数とデータ長を計算）
+      worksheet.columns.forEach((column, i) => {
+        const colName = columns[i];
+        const caption = (tableData.captions && tableData.captions[colName])
+          ? tableData.captions[colName]
+          : colName;
+
+        // 全角文字を考慮して文字幅を見積もり
+        let maxLen = Math.max(String(caption).length * 2, 8);
+        rows.forEach((r) => {
+          const val = r[colName];
+          if (val) {
+            const l = String(val).length;
+            if (l > maxLen) maxLen = l;
+          }
+        });
+
+        // 適切な余白を設定（最小12、最大50）
+        column.width = Math.min(Math.max(maxLen + 4, 12), 50);
+      });
+    });
+
+    // バイナリ書き出しとダウンロード
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const baseName = appState.fileName ? appState.fileName.replace(/\.xml$/i, "") : "dataset";
+    a.href = url;
+    a.download = `${baseName}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    updateStatus(`Excel ファイルを出力しました: ${a.download}`);
+  } catch (err) {
+    console.error("Excel export error:", err);
+    alert("Excelファイルの生成に失敗しました: " + err.message);
+    updateStatus("Excel出力失敗", true);
+  }
+}
+
+// ==========================================================================
+// 7. XML の再生成 & 保存（ダウンロード）
 // ==========================================================================
 
 /**
