@@ -1,0 +1,103 @@
+<?xml version="1.0" standalone="yes"?>
+<NewDataSet>
+  <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="Customers">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="CustomerID" msdata:Caption="顧客コード" type="xs:string" minOccurs="0" />
+                <xs:element name="CompanyName" msdata:Caption="会社名" type="xs:string" minOccurs="0" />
+                <xs:element name="ContactName" msdata:Caption="担当者名" type="xs:string" minOccurs="0" />
+                <xs:element name="City" msdata:Caption="都市" type="xs:string" minOccurs="0" />
+                <xs:element name="Country" msdata:Caption="国" type="xs:string" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Orders">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="OrderID" msdata:Caption="注文番号" type="xs:int" minOccurs="0" />
+                <xs:element name="CustomerID" msdata:Caption="顧客コード" type="xs:string" minOccurs="0" />
+                <xs:element name="OrderDate" msdata:Caption="注文日" type="xs:string" minOccurs="0" />
+                <xs:element name="Amount" msdata:Caption="金額" type="xs:decimal" minOccurs="0" />
+                <xs:element name="Status" msdata:Caption="ステータス" type="xs:string" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Products">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="ProductID" msdata:Caption="商品ID" type="xs:int" minOccurs="0" />
+                <xs:element name="ProductName" msdata:Caption="商品名" type="xs:string" minOccurs="0" />
+                <xs:element name="UnitPrice" msdata:Caption="単価" type="xs:decimal" minOccurs="0" />
+                <xs:element name="UnitsInStock" msdata:Caption="在庫数" type="xs:int" minOccurs="0" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <Customers>
+    <CustomerID>ALFKI</CustomerID>
+    <CompanyName>Alfreds Futterkiste</CompanyName>
+    <ContactName>Maria Anders</ContactName>
+    <City>Berlin</City>
+    <Country>Germany</Country>
+  </Customers>
+  <Customers>
+    <CustomerID>ANATR</CustomerID>
+    <CompanyName>Ana Trujillo Emparedados</CompanyName>
+    <ContactName>Ana Trujillo</ContactName>
+    <City>México D.F.</City>
+    <Country>Mexico</Country>
+  </Customers>
+  <Customers>
+    <CustomerID>ANTON</CustomerID>
+    <CompanyName>Antonio Moreno Taquería</CompanyName>
+    <ContactName>Antonio Moreno</ContactName>
+    <City>México D.F.</City>
+    <Country>Mexico</Country>
+  </Customers>
+  <Orders>
+    <OrderID>10248</OrderID>
+    <CustomerID>ALFKI</CustomerID>
+    <OrderDate>2026-08-01</OrderDate>
+    <Amount>440.00</Amount>
+    <Status>Shipped</Status>
+  </Orders>
+  <Orders>
+    <OrderID>10249</OrderID>
+    <CustomerID>ANATR</CustomerID>
+    <OrderDate>2026-08-05</OrderDate>
+    <Amount>1865.30</Amount>
+    <Status>Pending</Status>
+  </Orders>
+  <Orders>
+    <OrderID>10250</OrderID>
+    <CustomerID>ANTON</CustomerID>
+    <OrderDate>2026-08-10</OrderDate>
+    <Amount>670.50</Amount>
+    <Status>Shipped</Status>
+  </Orders>
+  <Products>
+    <ProductID>1</ProductID>
+    <ProductName>Chai</ProductName>
+    <UnitPrice>18.00</UnitPrice>
+    <UnitsInStock>39</UnitsInStock>
+  </Products>
+  <Products>
+    <ProductID>2</ProductID>
+    <ProductName>Chang</ProductName>
+    <UnitPrice>19.00</UnitPrice>
+    <UnitsInStock>17</UnitsInStock>
+  </Products>
+  <Products>
+    <ProductID>3</ProductID>
+    <ProductName>Aniseed Syrup</ProductName>
+    <UnitPrice>10.00</UnitPrice>
+    <UnitsInStock>13</UnitsInStock>
+  </Products>
+</NewDataSet>

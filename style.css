@@ -1,0 +1,463 @@
+/* ==========================================================================
+   DataSet XML エディター - スタイルシート (style.css)
+   初心者にも分かりやすいよう各セクションの目的を詳細にコメントしています。
+   ========================================================================== */
+
+/* --- 基本リセット & CSS変数（テーマカラー・共通定義） --- */
+:root {
+  --primary-color: #2563eb;       /* メインカラー（青） */
+  --primary-hover: #1d4ed8;       /* メインボタンホバー時 */
+  --success-color: #16a34a;       /* 保存・成功カラー（緑） */
+  --success-hover: #15803d;
+  --danger-color: #dc2626;        /* 削除・エラーカラー（赤） */
+  --danger-hover: #b91c1c;
+  --bg-main: #f8fafc;             /* 全体背景色（薄いグレー） */
+  --bg-sidebar: #ffffff;          /* サイドバー背景色（白） */
+  --border-color: #e2e8f0;        /* 境界線カラー */
+  --text-primary: #1e293b;        /* 主テキスト色 */
+  --text-secondary: #64748b;      /* 補助テキスト色（灰色） */
+  --header-bg: #1e293b;           /* ヘッダー背景色（ダークネイビー） */
+  --header-text: #f8fafc;         /* ヘッダー文字色 */
+  --active-item-bg: #eff6ff;      /* 選択中テーブルの背景色 */
+  --active-item-border: #3b82f6;  /* 選択中テーブルの枠線色 */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  color: var(--text-primary);
+  background-color: var(--bg-main);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   1. ヘッダーペイン (Header Pane)
+   ========================================================================== */
+.app-header {
+  height: 60px;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.app-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-subtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   汎用ボタンスタイル
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  color: #ffffff;
+}
+.btn-success:hover:not(:disabled) {
+  background-color: var(--success-hover);
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: #ffffff;
+}
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--danger-hover);
+}
+
+.btn-outline {
+  background-color: transparent;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+.btn-outline:hover:not(:disabled) {
+  background-color: #334155;
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: #f1f5f9;
+}
+
+/* ==========================================================================
+   2. メインレイアウト（左ペイン ＋ メインコンテンツ）
+   ========================================================================== */
+.app-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   3. 左ペイン（サイドバー: ファイル選択 & テーブル一覧）
+   ========================================================================== */
+.sidebar {
+  width: 300px;
+  min-width: 260px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ファイル読み込み領域（ドラッグ＆ドロップ対応） */
+.file-upload-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.drop-zone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 18px 12px;
+  text-align: center;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--primary-color);
+  background-color: #eff6ff;
+}
+
+.drop-zone-icon {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+}
+
+.drop-zone-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.drop-zone-subtext {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* 読み込んだファイルの情報バッジ */
+.file-info-badge {
+  margin-top: 10px;
+  background-color: #f1f5f9;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  word-break: break-all;
+}
+
+.file-info-badge span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.file-info-label {
+  color: var(--text-secondary);
+}
+
+/* テーブル一覧セクション */
+.tables-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 14px 12px 10px 12px;
+}
+
+.section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-list {
+  list-style: none;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.table-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  font-size: 0.9rem;
+}
+
+.table-list-item:hover {
+  background-color: #f1f5f9;
+}
+
+.table-list-item.active {
+  background-color: var(--active-item-bg);
+  border-color: var(--active-item-border);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.table-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-badge {
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.table-list-item.active .table-badge {
+  background-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px 10px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   4. メインコンテンツ（スプレッドシート & ツールバー）
+   ========================================================================== */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+/* メインペインのツールバー */
+.content-header {
+  padding: 12px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.current-table-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.current-table-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.current-table-stats {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background-color: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* スプレッドシート表示エリア */
+.grid-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+#table-grid {
+  height: 100%;
+  width: 100%;
+}
+
+/* スプレッドシート未選択時のプレースホルダー */
+.no-table-selected {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  background-color: #fafafa;
+  gap: 12px;
+}
+
+.no-table-icon {
+  font-size: 3rem;
+  color: #cbd5e1;
+}
+
+/* ==========================================================================
+   5. フッター / ステータスバー
+   ========================================================================== */
+.status-bar {
+  height: 28px;
+  background-color: #f1f5f9;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.status-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #22c55e; /* 通常時は緑 */
+}
+
+/* ==========================================================================
+   Tabulator スタイルの微調整（モダン・Excelライクな見た目に統一）
+   ========================================================================== */
+.tabulator {
+  font-size: 0.875rem !important;
+  border: none !important;
+}
+
+.tabulator .tabulator-header {
+  background-color: #f8fafc !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+.tabulator .tabulator-header .tabulator-col {
+  border-right: 1px solid #e2e8f0 !important;
+}
+
+.tabulator-row {
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.tabulator-row:hover {
+  background-color: #f8fafc !important;
+}
+
+.tabulator-row.tabulator-selected {
+  background-color: #dbeafe !important;
+}
+
+.tabulator-cell {
+  border-right: 1px solid #f1f5f9 !important;
+  padding: 6px 8px !important;
+}
+
+/* 編集中のセルのハイライト */
+.tabulator-cell.tabulator-editing {
+  border: 2px solid var(--primary-color) !important;
+  padding: 4px 6px !important;
+}
